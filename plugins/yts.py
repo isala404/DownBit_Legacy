@@ -7,8 +7,7 @@ RssRefreshTime = int(config('DownBit','RssRefreshTime'))
 
 
 def yts():
-	logger.info("Youtube Plugin Initiating")
-	logger.debug("Connecting to Database to Update Youtubers")
+	logger.info("YTS Plugin Initiating")
 	while 1:
 		try:
 			movies = db.read("SELECT id,name,quality,path FROM yts")
@@ -20,6 +19,7 @@ def yts():
 				for movie in movies:
 					if movie[1] in title and movie[2] in title:
 						db.addtodownload(title, "torrent-yts", link, movie[3], '')
+						db.write("DELETE from yts WHERE id = {}".format(int(movie[0])))
 
 			if dltime():
 				for row in db.read("SELECT * FROM downloads WHERE method = 'torrent-yts'"):
