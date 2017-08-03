@@ -17,6 +17,13 @@ class database:
 			return self.c.fetchall()
 		except Exception as e:
 			logger.critical(str(type(e).__name__) + " : " + str(e))
+	def read_hide(self,query):
+		try:
+			self.c.execute(query)
+			return self.c.fetchall()
+		except Exception as e:
+			logger.critical(str(type(e).__name__) + " : " + str(e))
+
 	def write(self,query):
 		logger.info("Writing Data --> {}".format(query))
 		try:
@@ -25,7 +32,7 @@ class database:
 		except Exception as e:
 			logger.critical(str(type(e).__name__) + " : " + str(e))
 	def lastmatch(self,table,column,id,value):
-		lastmatch = self.read("SELECT {} FROM {} WHERE id = {};".format(column,table,id))
+		lastmatch = self.read_hide("SELECT {} FROM {} WHERE id = {};".format(column,table,id))
 		if str(lastmatch[0][0]) == str(value):
 			return True
 		else:
@@ -33,10 +40,10 @@ class database:
 			self.write("UPDATE {} SET {} = '{}' WHERE id = {};".format(table, column, value, id))
 			return False
 	def getid(self,table,value,column):
-		return int(self.read("SELECT * from '{}' WHERE {} = '{}'".format(table,column,value))[0][0])
+		return int(self.read_hide("SELECT * from '{}' WHERE {} = '{}'".format(table,column,value))[0][0])
 	def mark_downloaded(self,url):
 		time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-		self.write("UPDATE downloads SET state = 'downloaded' WHERE url = '%s';".format(url))
+		self.write("UPDATE downloads SET state = 'downloaded', downloaded_time = '{}'  WHERE url = '{}';".format(time,url))
 	def delete(self,table,id):
 		self.write("DELETE FROM '{}' WHERE id = '{}'".format(table,id))
 	def addtodownload(self,name, method, url, path, provider):
@@ -58,10 +65,11 @@ def exe(cmd):
 
 
 def clear(s):
-	return re.sub('[^A-Za-z0-9 ]+', '', s)
+	return re.sub('[^A-Za-z0-9 ]+', '', s).strip(" ")
 
 def dltime():
 	dltimes = config('DownBit','DownloadHours').split(',')
+	dltimes = list(map(int, dltimes))
 	time = int(datetime.now().strftime('%H'))
 	if time in dltimes:
 		return True

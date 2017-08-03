@@ -32,8 +32,9 @@ def youtube():
 					logger.debug("Info is already added or Downloaded")
 
 
-			if dltime():
-				for row in db.read("SELECT * FROM downloads"):
+
+			for row in db.read("SELECT * FROM downloads where(method = 'yt-mp4' or method = 'yt-mp3' or method = 'yt-pl')"):
+				if dltime():
 					if row[11] == "downloading":
 						if row[2] == "yt-mp4":
 							out = exe(
@@ -41,24 +42,27 @@ def youtube():
 									row[7], clear(row[1]), row[3],config('Youtube','MaxFileSize')))
 							if ("File is larger than max-filesize" in out):
 								logger.info("Lowering Quality Due to Large File Size")
-							exe(
-								'youtube-dl -o "{}{} [%(id)s].%(ext)s" {} -f 18 -c -w --no-progress'.format(
-									row[7], clear(row[1]), row[3]))
+								exe(
+									'youtube-dl -o "{}{} [%(id)s].%(ext)s" {} -f 18 -c -w --no-progress'.format(
+										row[7], clear(row[1]), row[3]))
+							db.mark_downloaded(row[3])
 						elif row[2] == "yt-mp3":
 							exe(
 								'youtube-dl -o "{}{} [%(id)s].%(ext)s" {} -f 140 -c -w --no-progress'.format(
 									row[7], clear(row[1]), row[3]))
+							db.mark_downloaded(row[3])
 						elif row[2] == "yt-pl":
 							exe(
 								'youtube-dl -o "{}%(playlist)s/%(playlist_index)s-%(title)s_[%(id)s].%(ext)s" {} -f 22 -c -w --no-progress'.format(
 									row[7], row[3]))
-						db.mark_downloaded(row[3])
+							db.mark_downloaded(row[3])
 
 			logger.debug("Waiting {} for next session".format(RssRefreshTime))
 			time.sleep(int(RssRefreshTime))
-
+			
 		except Exception as e:
 			logger.critical(str(type(e).__name__) + " : " + str(e))
+			time.sleep(1)
 
 if __name__== '__main__':
 	youtube()
