@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataSource name="Sqlite (Xerial) - database.db">
+  <database-model serializer="dbm" rdbms="SQLITE" format-version="4.2">
+    <root id="1"/>
+    <schema id="2" parent="1" name="main">
+      <Current>1</Current>
+      <Visible>1</Visible>
+    </schema>
+    <table id="3" parent="2" name="Downloads"/>
+    <table id="4" parent="2" name="RSSFeeds"/>
+    <table id="5" parent="2" name="sqlite_master"/>
+    <table id="6" parent="2" name="sqlite_sequence"/>
+    <column id="7" parent="3" name="ID">
+      <DataType>INTEGER|0</DataType>
+      <SequenceIdentity>1</SequenceIdentity>
+    </column>
+    <column id="8" parent="3" name="RSSID">
+      <Position>1</Position>
+      <DataType>INTEGER|0</DataType>
+    </column>
+    <column id="9" parent="3" name="Name">
+      <Position>2</Position>
+      <DataType>TEXT|0</DataType>
+      <DefaultExpression>&apos; &apos;</DefaultExpression>
+    </column>
+    <column id="10" parent="3" name="Method">
+      <Position>3</Position>
+      <DataType>TEXT|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="11" parent="3" name="URL">
+      <Position>4</Position>
+      <DataType>TEXT|0</DataType>
+      <NotNull>1</NotNull>
+    </column>
+    <column id="12" parent="3" name="AddedTime">
+      <Position>5</Position>
+      <DataType>NUMERIC|0</DataType>
+      <DefaultExpression>&apos; &apos;</DefaultExpression>
+    </column>
+    <column id="13" parent="3" name="DownloadedTime">
+      <Position>6</Position>
+      <DataType>NUMERIC|0</DataType>
+      <DefaultExpression>&apos; &apos;</DefaultExpression>
+    </column>
+    <column id="14" parent="3" name="Path">
+      <Position>7</Position>
+      <DataType>TEXT|0</DataType>
+      <DefaultExpression>&apos;/mnt&apos;</DefaultExpression>
+    </column>
+    <column id="15" parent="3" name="FileSize">
+      <Position>8</Position>
+      <DataType>REAL|0</DataType>
+      <DefaultExpression>&apos; &apos;</DefaultExpression>
+    </column>
+    <column id="16" parent="3" name="DownloadedSize">
+      <Position>9</Position>
+      <DataType>REAL|0</DataType>
+      <DefaultExpression>&apos; &apos;</DefaultExpression>
+    </column>
+    <column id="17" parent="3" name="optionalARGS">
+      <Position>10</Position>
+      <DataType>TEXT|0</DataType>
+      <DefaultExpression>&apos; &apos;</DefaultExpression>
+    </column>
+    <column id="18" parent="3" name="Downloaded">
+      <Position>11</Position>
+      <DataType>NUMERIC|0</DataType>
+      <DefaultExpression>0</DefaultExpression>
+    </column>
+    <key id="19" parent="3">
+      <ColNames>ID</ColNames>
+      <Primary>1</Primary>
+    </key>
+    <column id="20" parent="4" name="ID">
+      <DataType>INTEGER|0</DataType>
+      <SequenceIdentity>1</SequenceIdentity>
+    </column>
+    <column id="21" parent="4" name="Name">
+      <Position>1</Position>
+      <DataType>TEXT|0</DataType>
+    </column>
+    <column id="22" parent="4" name="Feed">
+      <Position>2</Position>
+      <DataType>TEXT|0</DataType>
+    </column>
+    <column id="23" parent="4" name="DownloadPath">
+      <Position>3</Position>
+      <DataType>TEXT|0</DataType>
+    </column>
+    <column id="24" parent="4" name="Includes">
+      <Position>4</Position>
+      <DataType>TEXT|0</DataType>
+    </column>
+    <column id="25" parent="4" name="Excludes">
+      <Position>5</Position>
+      <DataType>TEXT|0</DataType>
+      <DefaultExpression>&apos;#&amp;*,$#&apos;</DefaultExpression>
+    </column>
+    <column id="26" parent="4" name="Type">
+      <Position>6</Position>
+      <DataType>TEXT|0</DataType>
+    </column>
+    <column id="27" parent="4" name="Quality">
+      <Position>7</Position>
+      <DataType>TEXT|0</DataType>
+      <DefaultExpression>&apos;720p&apos;</DefaultExpression>
+    </column>
+    <column id="28" parent="4" name="LastMatch">
+      <Position>8</Position>
+      <DataType>TEXT|0</DataType>
+    </column>
+    <key id="29" parent="4">
+      <ColNames>ID</ColNames>
+      <Primary>1</Primary>
+    </key>
+    <column id="30" parent="5" name="type">
+      <DataType>text|0</DataType>
+    </column>
+    <column id="31" parent="5" name="name">
+      <Position>1</Position>
+      <DataType>text|0</DataType>
+    </column>
+    <column id="32" parent="5" name="tbl_name">
+      <Position>2</Position>
+      <DataType>text|0</DataType>
+    </column>
+    <column id="33" parent="5" name="rootpage">
+      <Position>3</Position>
+      <DataType>integer|0</DataType>
+    </column>
+    <column id="34" parent="5" name="sql">
+      <Position>4</Position>
+      <DataType>text|0</DataType>
+    </column>
+    <column id="35" parent="6" name="name">
+      <DataType>|0</DataType>
+    </column>
+    <column id="36" parent="6" name="seq">
+      <Position>1</Position>
+      <DataType>|0</DataType>
+    </column>
+  </database-model>
+</dataSource>

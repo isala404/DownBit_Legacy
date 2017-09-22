@@ -1,150 +1,95 @@
-from datetime import datetime
-import sqlite3, logging, os, re
-import configparser
+import os
+import smtplib
+import socket
+import sys
+import time
+from datetime import datetime as dt
+from multiprocessing import Process
 
-class database:
-	def __init__(self):
-		try:
-			os.chdir(os.path.dirname(os.path.abspath(__file__)))
-			self.conn = sqlite3.connect('database/database.db')
-			self.c = self.conn.cursor()
-		except Exception as e:
-			logger.critical(str(type(e).__name__) + " : " + str(e))
-	def read(self,query):
-		logger.info("Reading Data --> {}".format(query))
-		try:
-			self.c.execute(query)
-			return self.c.fetchall()
-		except Exception as e:
-			logger.critical(str(type(e).__name__) + " : " + str(e))
-	def read_hide(self,query):
-		try:
-			self.c.execute(query)
-			return self.c.fetchall()
-		except Exception as e:
-			logger.critical(str(type(e).__name__) + " : " + str(e))
+import psutil
 
-	def write(self,query):
-		logger.info("Writing Data --> {}".format(query))
-		try:
-			self.c.execute(query)
-			self.conn.commit()
-		except Exception as e:
-			logger.critical(str(type(e).__name__) + " : " + str(e))
-	def lastmatch(self,table,column,id,value):
-		lastmatch = self.read_hide("SELECT {} FROM {} WHERE id = {};".format(column,table,id))
-		if str(lastmatch[0][0]) == str(value):
-			return True
-		else:
-			logger.info('Updating last match for {} table where id = {} to {}'.format(table, id,value))
-			self.write("UPDATE {} SET {} = '{}' WHERE id = {};".format(table, column, value, id))
-			return False
-	def getid(self,table,value,column):
-		return int(self.read_hide("SELECT * from '{}' WHERE {} = '{}'".format(table,column,value))[0][0])
-	def mark_downloaded(self,url):
-		time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-		self.write("UPDATE downloads SET state = 'downloaded', downloaded_time = '{}'  WHERE url = '{}';".format(time,url))
-	def delete(self,table,id):
-		self.write("DELETE FROM '{}' WHERE id = '{}'".format(table,id))
-	def addtodownload(self,name, method, url, path, provider):
-		time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-		self.write("INSERT INTO downloads (name,method,url,provider,added_time,path,state) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}')".format(name, method, url, provider, time, path, "downloading"))
-	def update_lastmatch(self,table,column,id,value):
-		self.write("UPDATE {} set {} = '{}' where id = '{}'".format(table,column,value,id))
+from Core import DB
+from RSSDownloader import main as RSSDownloader
+from RSSReader import main as RSSReader
 
-def exe(cmd):
-	logger.info('executing cmd - ' + cmd)
-	try:
-		f = os.popen(cmd)
-		out = f.read()
-		for line in out.split("\n"):
-			logger.info("output " + line)
-		return out
-	except Exception as e:
-		logger.critical(str(type(e).__name__) + " : " + str(e))
+LOGGER = DB.Logger.log
+STORAGE = DB.Storage
 
 
-def clear(s):
-	return re.sub('[^A-Za-z0-9 ]+', '', s).strip(" ")
-
-def dltime():
-	dltimes = config('DownBit','DownloadHours').split(',')
-	dltimes = list(map(int, dltimes))
-	time = int(datetime.now().strftime('%H'))
-	if time in dltimes:
-		return True
-	else:
-		return False
-
-def config(section,sub):
-	os.chdir(os.path.dirname(os.path.abspath(__file__)))
-	config = configparser.ConfigParser()
-	config.read('config/config.ini')
-	return config[section][sub]
-
-def uniqifie(seq, idfun=None):
-	# https://www.peterbe.com/plog/rs-benchmark
-	# order preserving
-	if idfun is None:
-		def idfun(x): return x
-		seen = {}
-		result = []
-	for item in seq:
-		marker = idfun(item)
-		# in old Python versions:
-		# if seen.has_key(marker)
-		# but in new ones:
-		if marker in seen: continue
-		seen[marker] = 1
-		result.append(item)
-	return result
+def is_connected():
+    try:
+        host = socket.gethostbyname("www.google.com")
+        _ = socket.create_connection((host, 80), 2)
+        return True
+    except Exception as e_:
+        print(e_)
+        pass
+    return False
 
 
-def logger(file_name):
+def restart_program():
+    """
+        Restarts the current program, with file objects and descriptors
+        cleanup
+    """
+    try:
+        p = psutil.Process(os.getpid())
+        for handler in p.get_open_files() + p.connections():
+            os.close(handler.fd)
+    except Exception as e_:
+        LOGGER.critical(str(type(e_).__name__) + " : " + str(e_))
 
-	file_name = "logs/"+file_name
+    python = sys.executable
+    os.execl(python, python, *sys.argv)
 
-	if not os.path.exists('logs'):
-		os.makedirs('logs')
 
-	if os.path.isfile(file_name + ".5"):
-		os.remove(file_name + ".5")
-	if os.path.isfile(file_name + ".4"):
-		os.rename(file_name + ".4", file_name + ".5")
-	if os.path.isfile(file_name + ".3"):
-		os.rename(file_name + ".3", file_name + ".4")
-	if os.path.isfile(file_name + ".2"):
-		os.rename(file_name + ".2", file_name + ".3")
-	if os.path.isfile(file_name + ".1"):
-		os.rename(file_name + ".1", file_name + ".2")
-	if os.path.isfile(file_name):
-		os.rename(file_name, file_name + ".1")
-		if os.path.isfile(file_name):
-			os.remove(file_name)
+def sendEmail(downloads):
+    server = smtplib.SMTP(DB.cfg.getSetting('STMPServer'), DB.cfg.getSettingInt('STMPPort'))
+    server.starttls()
+    server.login(DB.cfg.getSetting('SenderEmail'), DB.cfg.getSetting('SenderEmailPassword'))
 
-	logFormatter = logging.Formatter(fmt='%(asctime)-10s %(levelname)-10s: %(module)s:%(lineno)-d -  %(message)s',
-	                                 datefmt='%Y-%m-%d %H:%M:%S')
+    msg = "Downloads for Today\n"
+    for download in downloads:
+        msg += "\n{}".format(download[0])
 
-	#logFormatter = logging.Formatter('[%(asctime)s] %(levelname)-10s: %(module)s {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
-	#                              '%m-%d %H:%M:%S')
-	rootLogger = logging.getLogger()
-	rootLogger.setLevel(logging.INFO)
-	if config('DownBit','LogLevel') == "info":
-		rootLogger.setLevel(logging.INFO)
-	elif config('DownBit','LogLevel') == "debug":
-		rootLogger.setLevel(logging.DEBUG)
-	elif config('DownBit','LogLevel') == "error":
-		rootLogger.setLevel(logging.ERROR)
-	elif config('DownBit','LogLevel') == "critical":
-		rootLogger.setLevel(logging.CRITICAL)
-	fileHandler = logging.FileHandler(file_name)
-	fileHandler.setFormatter(logFormatter)
-	rootLogger.addHandler(fileHandler)
+    LOGGER.info('Sending the Daily Email for ' + DB.cfg.getSetting('ReceiverEmail'))
+    server.sendmail(DB.cfg.getSetting('SenderEmail'), DB.cfg.getSetting('ReceiverEmail'), msg)
+    server.quit()
 
-	consoleHandler = logging.StreamHandler()
-	consoleHandler.setFormatter(logFormatter)
-	rootLogger.addHandler(consoleHandler)
 
-	return rootLogger
+try:
+    if __name__ == '__main__':
+        LOGGER.info("##########################################################")
+        LOGGER.info("##################### Starting ###########################")
+        LOGGER.info("##########################################################")
 
-logger = logger('downbit.log')
+        if not is_connected():
+            LOGGER.info("Waiting for Internet Connection")
+
+        while not is_connected():
+            time.sleep(10)
+
+        try:
+            RSSReader = Process(target=RSSReader)
+            RSSReader.start()
+
+            RSSDownloader = Process(target=RSSDownloader)
+            RSSDownloader.start()
+
+        except Exception as e:
+            restart_program()
+            LOGGER.critical(str(type(e).__name__) + " : " + str(e))
+
+        while True:
+            if str(dt.now().strftime('%H:%M')) == '08:00':
+                data = STORAGE.get("select Name from Downloads where DownloadedTime >= Datetime('{} 00:00:00') ".format(
+                    str(dt.now().strftime('%Y-%m-%d'))))
+                sendEmail(data)
+            time.sleep(60)
+except KeyboardInterrupt:
+    RSSReader.terminate()
+    RSSDownloader.terminate()
+    LOGGER.error("KeyboardInterrupt Stopping DownBit")
+    LOGGER.info("##########################################################")
+    LOGGER.info("################### Terminating ##########################")
+    LOGGER.info("##########################################################")
