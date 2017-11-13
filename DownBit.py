@@ -81,11 +81,7 @@ try:
 
         if len(sys.argv) > 1:
             LOGGER.info("DownBit Build Testing Mod Activated")
-            time.sleep(60)
-            data = STORAGE.get("select Name from Downloads where DownloadedTime >= Datetime('{} 00:00:00') ".format(
-                str(dt.now().strftime('%Y-%m-%d'))))
-            sendEmail(data)
-            time.sleep(300)
+            time.sleep(360)
             if DB.Logger.buildFailed:
                 RSSReader.terminate()
                 RSSDownloader.terminate()
