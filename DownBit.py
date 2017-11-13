@@ -7,6 +7,7 @@ from multiprocessing import Process
 from Core import DB
 from RSSDownloader import main as RSSDownloader
 from RSSReader import main as RSSReader
+import os
 
 LOGGER = DB.Logger.log
 STORAGE = DB.Storage
@@ -50,14 +51,19 @@ try:
 
         try:
             RSSReader = Process(target=RSSReader)
-            RSSReader.start()
-
             RSSDownloader = Process(target=RSSDownloader)
+
+            RSSReader.start()
             RSSDownloader.start()
 
         except Exception as e:
             LOGGER.critical(str(type(e).__name__) + " : " + str(e))
-
+            RSSReader.terminate()
+            RSSDownloader.terminate()
+            LOGGER.info("##########################################################")
+            LOGGER.info("#################### Restating ###########################")
+            LOGGER.info("##########################################################")
+            os.execv(sys.executable, [sys.executable] + sys.argv)
         if len(sys.argv) > 1:
             LOGGER.info("DownBit Build Testing Mod Activated")
             time.sleep(360)
