@@ -79,12 +79,34 @@ try:
             restart_program()
             LOGGER.critical(str(type(e).__name__) + " : " + str(e))
 
-        while True:
-            if str(dt.now().strftime('%H:%M')) == '08:00':
-                data = STORAGE.get("select Name from Downloads where DownloadedTime >= Datetime('{} 00:00:00') ".format(
-                    str(dt.now().strftime('%Y-%m-%d'))))
-                sendEmail(data)
+        if len(sys.argv) > 1:
+            LOGGER.info("DownBit Build Testing Mod Activated")
             time.sleep(60)
+            data = STORAGE.get("select Name from Downloads where DownloadedTime >= Datetime('{} 00:00:00') ".format(
+                str(dt.now().strftime('%Y-%m-%d'))))
+            sendEmail(data)
+            time.sleep(300)
+            if DB.Logger.buildFailed:
+                RSSReader.terminate()
+                RSSDownloader.terminate()
+                LOGGER.info("##########################################################")
+                LOGGER.info("################### Terminating ##########################")
+                LOGGER.info("##########################################################")
+            else:
+                LOGGER.info("DownBit New Build Successfully Passed\n\n")
+                RSSReader.terminate()
+                RSSDownloader.terminate()
+                LOGGER.info("##########################################################")
+                LOGGER.info("################### Terminating ##########################")
+                LOGGER.info("##########################################################")
+        else:
+            while True:
+                if str(dt.now().strftime('%H:%M')) == '08:00':
+                    data = STORAGE.get(
+                        "select Name from Downloads where DownloadedTime >= Datetime('{} 00:00:00') ".format(
+                            str(dt.now().strftime('%Y-%m-%d'))))
+                    sendEmail(data)
+                time.sleep(60)
 except KeyboardInterrupt:
     RSSReader.terminate()
     RSSDownloader.terminate()

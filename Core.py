@@ -15,33 +15,15 @@ class Storage(object):
         self.conn = sqlite3.connect('data/database.db')
         self.c = self.conn.cursor()
 
-        self.c.execute('''
-                        CREATE TABLE IF NOT EXISTS `Downloads` (
-                        `ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
-                        `Name`	TEXT DEFAULT ' ',
-                        `Method`	TEXT NOT NULL,
-                        `URL`	TEXT NOT NULL,
-                        `AddedTime`	NUMERIC DEFAULT ' ',
-                        `DownloadedTime`	NUMERIC DEFAULT ' ',
-                        `Path`	TEXT DEFAULT '/mnt',
-                        `FileSize`	REAL DEFAULT ' ',
-                        `DownloadedSize`	REAL DEFAULT ' ',
-                        `optionalARGS`	TEXT DEFAULT ' ',
-                        `Downloaded`	NUMERIC DEFAULT 0
-                        );''')
-
-        self.c.execute('''
-                        CREATE TABLE IF NOT EXISTS `RSSFeeds` (
-                        `ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
-                        `Name`	TEXT DEFAULT ' ',
-                        `Feed`	TEXT DEFAULT ' ',
-                        `DownloadPath`	TEXT DEFAULT ' ',
-                        `Includes`	TEXT DEFAULT ' ',
-                        `Excludes`	TEXT DEFAULT '#&*,$#',
-                        `Type`	TEXT,
-                        `Quality`	TEXT DEFAULT '720p',
-                        `LastMatch`	TEXT DEFAULT ' '
-                        );''')
+        self.c.execute(
+            '''CREATE TABLE IF NOT EXISTS "Downloads" ( `ID` INTEGER PRIMARY KEY AUTOINCREMENT, `RSSID` INTEGER, `Name` TEXT DEFAULT ' ', `Method` TEXT NOT NULL, `URL` TEXT NOT NULL, `AddedTime` NUMERIC DEFAULT ' ', `DownloadedTime` NUMERIC DEFAULT ' ', `Path` TEXT DEFAULT '/mnt', `FileSize` REAL DEFAULT ' ', `DownloadedSize` REAL DEFAULT ' ', `optionalARGS` TEXT DEFAULT ' ', `Downloaded` NUMERIC DEFAULT 0 )''')
+        self.c.execute(
+            '''CREATE TABLE IF NOT EXISTS "RSSFeeds" ( `ID` INTEGER PRIMARY KEY AUTOINCREMENT, `Name` TEXT, `Feed` TEXT, `DownloadPath` TEXT, `Includes` TEXT, `Excludes` TEXT DEFAULT '#&*,$#', `Type` TEXT, `Quality` TEXT DEFAULT '720p', `LastMatch` TEXT );''')
+        self.c.execute("SELECT * FROM RSSFeeds")
+        if len(self.c.fetchall()) == 0:
+            self.c.execute(
+                '''INSERT INTO RSSFeeds(Name,Feed,DownloadPath,Type) VALUES ('Sentdex','https://www.youtube.com/feeds/videos.xml?channel_id=UCfzlCWGWYyIQ0aLC5w48gBQ','~/sentdex/Downloads/','Youtube')''')
+            self.conn.commit()
 
     def get(self, query, *pars, readOne=False):
         DB.Logger.log.info("Reading Data --> {} - {}".format(query, pars))
@@ -115,6 +97,7 @@ class ConfigParser(object):
 class Logger(object):
     def __init__(self):
         try:
+            self.buildFailed = False
             os.chdir(os.path.dirname(os.path.abspath(__file__)))
             if not os.path.exists('data'):
                 os.makedirs('data')
@@ -158,8 +141,8 @@ class Logger(object):
         else:
             return 20
 
-    @staticmethod
-    def getError():
+    def getError(self):
+        self.buildFailed = True
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         error = "{} {} {}".format(exc_type, fname, exc_tb.tb_lineno)
