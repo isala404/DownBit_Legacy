@@ -14,7 +14,7 @@ class Storage(object):
             self.conn = sqlite3.connect('data/database.db')
             self.c = self.conn.cursor()
 
-            self.c.execute('''
+            self.put('''
                             CREATE TABLE IF NOT EXISTS `Downloads` (
                             `ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
                             `Name`	TEXT DEFAULT ' ',
@@ -26,10 +26,10 @@ class Storage(object):
                             `FileSize`	REAL DEFAULT ' ',
                             `DownloadedSize`	REAL DEFAULT ' ',
                             `optionalARGS`	TEXT DEFAULT ' ',
-                            `Downloaded`	NUMERIC DEFAULT 0
+                            `Downloaded`	NUMERIC DEFAULT FALSE
                             );''')
 
-            self.c.execute('''
+            self.put('''
                             CREATE TABLE IF NOT EXISTS `RSSFeeds` (
                             `ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
                             `Name`	TEXT DEFAULT ' ',
