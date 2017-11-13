@@ -4,3 +4,4 @@ beautifulsoup4
 feedparser
 sqlite3
 logging
+configparser
