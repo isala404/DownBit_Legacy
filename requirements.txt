@@ -1,4 +1,3 @@
-psutil
 beautifulsoup4
 feedparser
 youtube-dl
