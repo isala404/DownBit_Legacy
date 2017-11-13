@@ -22,7 +22,7 @@ def YoutubeDL(id, name, url, path, quality, arg, playlist=False):
 
     if not playlist:
         EXE('youtube-dl -o "{}{} [%(id)s].%(ext)s" {} -f {} --max-filesize {} -c --no-progress {}'.format(
-            name, path, url, getQuality(quality), DB.cfg.getSetting('YoutubeMaxFileSize'), arg
+            path, name, url, getQuality(quality), DB.cfg.getSetting('YoutubeMaxFileSize'), arg
         ))
     else:
         EXE(
@@ -64,6 +64,7 @@ def Weeb(id, name, url, path):
     ))
     if os.path.isfile(path + name):
         STORAGE.mark_downloaded(id)
+
 
 def main():
     LOGGER.info("Initiating RSS Downloader")
