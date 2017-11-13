@@ -27,7 +27,7 @@ class Storage(object):
                         `FileSize`	REAL DEFAULT ' ',
                         `DownloadedSize`	REAL DEFAULT ' ',
                         `optionalARGS`	TEXT DEFAULT ' ',
-                        `Downloaded`	NUMERIC DEFAULT FALSE
+                        `Downloaded`	NUMERIC DEFAULT 0
                         );''')
 
         self.c.execute('''

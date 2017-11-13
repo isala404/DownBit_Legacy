@@ -69,8 +69,8 @@ def main():
     LOGGER.info("Initiating RSS Downloader")
     while True:
         try:
-            if DB.cfg.isDLTime():
-                for row in STORAGE.get('SELECT * FROM Downloads WHERE Downloaded = FALSE;'):
+            if True:
+                for row in STORAGE.get('SELECT * FROM Downloads WHERE Downloaded = 0;'):
                     ID = row[0]
                     Quality = row[1]
                     Name = DB.clear(row[2])
