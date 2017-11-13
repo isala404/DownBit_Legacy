@@ -172,13 +172,9 @@ class Logger(object):
 
 class DownBit(object):
     def __init__(self):
-        try:
-            self.Logger = Logger()
-            self.Storage = Storage()
-            self.cfg = ConfigParser()
-        except Exception as e:
-            DB.Logger.log.critical(str(type(e).__name__) + " : " + str(e))
-            DB.Logger.log.critical(DB.Logger.getError())
+        self.Logger = Logger()
+        self.Storage = Storage()
+        self.cfg = ConfigParser()
 
     @staticmethod
     def clear(s):
