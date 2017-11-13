@@ -53,7 +53,7 @@ class Storage(object):
     def mark_downloaded(self, id):
         time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.put(
-            "UPDATE Downloads SET Downloaded = TRUE, DownloadedTime = (?)  WHERE id = (?);", time, id)
+            "UPDATE Downloads SET Downloaded = 1, DownloadedTime = (?)  WHERE id = (?);", time, id)
 
     def addtodownload(self, id, name, method, url, path, arg=''):
         time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
