@@ -126,8 +126,11 @@ class Logger(object):
             for i in range(4, 0, -1):
                 if os.path.isfile('{}.{}'.format(file_name, i)):
                     os.rename('{}.{}'.format(file_name, i), '{}.{}'.format(file_name, i + 1))
+
             if os.path.isfile(file_name):
-                os.remove(file_name)
+                os.rename(file_name, file_name + '.1')
+            else:
+                DB.Logger.log.error('No Log file Found')
 
             logFormatter = logging.Formatter(
                 fmt='%(asctime)-10s %(levelname)-10s: %(module)s:%(lineno)-d -  %(message)s',

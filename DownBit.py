@@ -22,8 +22,7 @@ def is_connected():
         _ = socket.create_connection((host, 80), 2)
         return True
     except Exception as e_:
-        print(e_)
-        pass
+        DB.Logger.log.debug(str(type(e_).__name__) + " : " + str(e_))
     return False
 
 

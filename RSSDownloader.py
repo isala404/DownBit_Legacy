@@ -11,7 +11,7 @@ STORAGE = DB.Storage
 EXE = DB.exe
 
 
-def YoutubeDL(name, url, path, quality, arg, playlist=False):
+def YoutubeDL(id, name, url, path, quality, arg, playlist=False):
     def getQuality(s):
         if s is '720p':
             return 22
@@ -29,22 +29,26 @@ def YoutubeDL(name, url, path, quality, arg, playlist=False):
             'youtube-dl -o "{}%(playlist)s/%(playlist_index)s-%(title)s_[%(id)s].%(ext)s" {} -f {} --max-filesize {} -c --no-progress {}'.format(
                 name, url, path, getQuality(quality), DB.cfg.getSetting('YoutubeMaxFileSize'), arg
             ))
+    STORAGE.mark_downloaded(id)
 
 
-def Torrent(url, path, arg):
+def Torrent(id, url, path, arg):
     EXE("deluge-console add '{}' -p '{}' {}".format(
         url, path, arg
     ))
+    STORAGE.mark_downloaded(id)
 
 
-def Direct(name, url, path, arg):
+def Direct(id, name, url, path, arg):
     os.mkdir(path)
-    EXE("wget '{}' -O '{}{}.{}' -c".format(
+    EXE("wget '{}' -O '{}{}' -c {}".format(
         url, path, name, arg
     ))
+    if os.path.isfile(path + name):
+        STORAGE.mark_downloaded(id)
 
 
-def Weeb(name, url, path):
+def Weeb(id, name, url, path):
     os.mkdir(path)
     source = urllib.request.urlopen(url).read()
     soup = bs.BeautifulSoup(source, 'lxml')
@@ -58,7 +62,8 @@ def Weeb(name, url, path):
     EXE("wget '{}' -O '{}{}.mp4' -c".format(
         link, path, name
     ))
-
+    if os.path.isfile(path + name):
+        STORAGE.mark_downloaded(id)
 
 def main():
     LOGGER.info("Initiating RSS Downloader")
@@ -66,6 +71,7 @@ def main():
         try:
             if DB.cfg.isDLTime():
                 for row in STORAGE.get('SELECT * FROM Downloads WHERE Downloaded = FALSE;'):
+                    ID = row[0]
                     Quality = row[1]
                     Name = DB.clear(row[2])
                     Type = row[3]
@@ -73,15 +79,15 @@ def main():
                     Path = row[7]
                     ARG = row[9]
                     if Type == 'Youtube':
-                        YoutubeDL(Name, URL, Path, Quality, ARG)
+                        YoutubeDL(ID, Name, URL, Path, Quality, ARG)
                     elif Type == 'Youtube-Playlist':
-                        YoutubeDL(Name, URL, Path, Quality, ARG, playlist=True)
+                        YoutubeDL(ID, Name, URL, Path, Quality, ARG, playlist=True)
                     elif Type == 'Torrent':
-                        Torrent(URL, Path, ARG)
+                        Torrent(ID, URL, Path, ARG)
                     elif Type == 'Weeb':
-                        Weeb(URL, Path, ARG)
+                        Weeb(ID, URL, Path, ARG)
                     else:
-                        Direct(Name, URL, Path, ARG)
+                        Direct(ID, Name, URL, Path, ARG)
         except Exception as e:
             LOGGER.critical(str(type(e).__name__) + " : " + str(e))
             LOGGER.critical(DB.Logger.getError())
