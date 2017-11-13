@@ -9,41 +9,39 @@ from datetime import datetime
 
 class Storage(object):
     def __init__(self):
-        try:
-            os.chdir(os.path.dirname(os.path.abspath(__file__)))
-            self.conn = sqlite3.connect('data/database.db')
-            self.c = self.conn.cursor()
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
+        if not os.path.exists('data'):
+            os.makedirs('data')
+        self.conn = sqlite3.connect('data/database.db')
+        self.c = self.conn.cursor()
 
-            self.put('''
-                            CREATE TABLE IF NOT EXISTS `Downloads` (
-                            `ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
-                            `Name`	TEXT DEFAULT ' ',
-                            `Method`	TEXT NOT NULL,
-                            `URL`	TEXT NOT NULL,
-                            `AddedTime`	NUMERIC DEFAULT ' ',
-                            `DownloadedTime`	NUMERIC DEFAULT ' ',
-                            `Path`	TEXT DEFAULT '/mnt',
-                            `FileSize`	REAL DEFAULT ' ',
-                            `DownloadedSize`	REAL DEFAULT ' ',
-                            `optionalARGS`	TEXT DEFAULT ' ',
-                            `Downloaded`	NUMERIC DEFAULT FALSE
-                            );''')
+        self.c.execute('''
+                        CREATE TABLE IF NOT EXISTS `Downloads` (
+                        `ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
+                        `Name`	TEXT DEFAULT ' ',
+                        `Method`	TEXT NOT NULL,
+                        `URL`	TEXT NOT NULL,
+                        `AddedTime`	NUMERIC DEFAULT ' ',
+                        `DownloadedTime`	NUMERIC DEFAULT ' ',
+                        `Path`	TEXT DEFAULT '/mnt',
+                        `FileSize`	REAL DEFAULT ' ',
+                        `DownloadedSize`	REAL DEFAULT ' ',
+                        `optionalARGS`	TEXT DEFAULT ' ',
+                        `Downloaded`	NUMERIC DEFAULT FALSE
+                        );''')
 
-            self.put('''
-                            CREATE TABLE IF NOT EXISTS `RSSFeeds` (
-                            `ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
-                            `Name`	TEXT DEFAULT ' ',
-                            `Feed`	TEXT DEFAULT ' ',
-                            `DownloadPath`	TEXT DEFAULT ' ',
-                            `Includes`	TEXT DEFAULT ' ',
-                            `Excludes`	TEXT DEFAULT '#&*,$#',
-                            `Type`	TEXT,
-                            `Quality`	TEXT DEFAULT '720p',
-                            `LastMatch`	TEXT DEFAULT ' '
-                            );''')
-        except Exception as e:
-            DB.Logger.log.critical(str(type(e).__name__) + " : " + str(e))
-            DB.Logger.log.critical(DB.Logger.getError())
+        self.c.execute('''
+                        CREATE TABLE IF NOT EXISTS `RSSFeeds` (
+                        `ID`	INTEGER PRIMARY KEY AUTOINCREMENT,
+                        `Name`	TEXT DEFAULT ' ',
+                        `Feed`	TEXT DEFAULT ' ',
+                        `DownloadPath`	TEXT DEFAULT ' ',
+                        `Includes`	TEXT DEFAULT ' ',
+                        `Excludes`	TEXT DEFAULT '#&*,$#',
+                        `Type`	TEXT,
+                        `Quality`	TEXT DEFAULT '720p',
+                        `LastMatch`	TEXT DEFAULT ' '
+                        );''')
 
     def get(self, query, *pars, readOne=False):
         DB.Logger.log.info("Reading Data --> {} - {}".format(query, pars))
@@ -170,9 +168,16 @@ class Logger(object):
 
 class DownBit(object):
     def __init__(self):
-        self.Logger = Logger()
-        self.Storage = Storage()
-        self.cfg = ConfigParser()
+        try:
+            self.Logger = Logger()
+            self.cfg = ConfigParser()
+            self.Storage = Storage()
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            error = "{} {} {}".format(exc_type, fname, exc_tb.tb_lineno)
+            print(str(type(e).__name__) + " : " + str(e), file=sys.stderr)
+            print(error, file=sys.stderr)
 
     @staticmethod
     def clear(s):
