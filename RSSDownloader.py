@@ -22,12 +22,12 @@ def YoutubeDL(id, name, url, path, quality, arg, playlist=False):
 
     if not playlist:
         EXE('youtube-dl -o "{}{} [%(id)s].%(ext)s" {} -f {} --max-filesize {} -c --no-progress {}'.format(
-            name, url, path, getQuality(quality), DB.cfg.getSetting('YoutubeMaxFileSize'), arg
+            name, path, url, getQuality(quality), DB.cfg.getSetting('YoutubeMaxFileSize'), arg
         ))
     else:
         EXE(
             'youtube-dl -o "{}%(playlist)s/%(playlist_index)s-%(title)s_[%(id)s].%(ext)s" {} -f {} --max-filesize {} -c --no-progress {}'.format(
-                name, url, path, getQuality(quality), DB.cfg.getSetting('YoutubeMaxFileSize'), arg
+                path, url, getQuality(quality), DB.cfg.getSetting('YoutubeMaxFileSize'), arg
             ))
     STORAGE.mark_downloaded(id)
 
