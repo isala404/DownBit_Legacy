@@ -130,7 +130,7 @@ class Logger(object):
             if os.path.isfile(file_name):
                 os.rename(file_name, file_name + '.1')
             else:
-                DB.Logger.log.error('No Log file Found')
+                self.log.error('No Log file Found')
 
             logFormatter = logging.Formatter(
                 fmt='%(asctime)-10s %(levelname)-10s: %(module)s:%(lineno)-d -  %(message)s',
@@ -146,8 +146,8 @@ class Logger(object):
             consoleHandler.setFormatter(logFormatter)
             self.log.addHandler(consoleHandler)
         except Exception as e:
-            DB.Logger.log.critical(str(type(e).__name__) + " : " + str(e))
-            DB.Logger.log.critical(DB.Logger.getError())
+            self.log.critical(str(type(e).__name__) + " : " + str(e))
+            self.log.critical(DB.Logger.getError())
 
     @staticmethod
     def loglevel():
