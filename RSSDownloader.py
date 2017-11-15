@@ -49,7 +49,8 @@ def Direct(id, name, url, path, arg):
 
 
 def Weeb(id, name, url, path):
-    os.mkdir(path)
+    if not os.path.exists(path):
+        os.mkdir(path)
     source = urllib.request.urlopen(url).read()
     soup = bs.BeautifulSoup(source, 'lxml')
 
@@ -69,9 +70,9 @@ def Weeb(id, name, url, path):
 def main():
     LOGGER.info("Initiating RSS Downloader")
     while True:
-        try:
-            if DB.cfg.isDLTime():
-                for row in STORAGE.get('SELECT * FROM Downloads WHERE Downloaded = 0;'):
+        if DB.cfg.isDLTime():
+            for row in STORAGE.get('SELECT * FROM Downloads WHERE Downloaded = 0;'):
+                try:
                     ID = row[0]
                     Quality = row[1]
                     Name = DB.clear(row[2])
@@ -86,12 +87,13 @@ def main():
                     elif Type == 'Torrent':
                         Torrent(ID, URL, Path, ARG)
                     elif Type == 'Weeb':
-                        Weeb(ID, URL, Path, ARG)
+                        Weeb(ID, row[2], URL, Path)
                     else:
                         Direct(ID, Name, URL, Path, ARG)
-        except Exception as e:
-            LOGGER.critical(str(type(e).__name__) + " : " + str(e))
-            LOGGER.critical(DB.Logger.getError())
+                except Exception as e:
+                    LOGGER.critical(str(type(e).__name__) + " : " + str(e))
+                    LOGGER.critical(DB.Logger.getError())
+                    pass
         LOGGER.debug("Waiting 120 seconds for next session")
         time.sleep(120)
 

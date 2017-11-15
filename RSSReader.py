@@ -84,7 +84,7 @@ def Weeb(id, name, url, includes, excludes, lastmatch, path):
                     link = getEpisodeURL(url, ins, excludes)
                     if not link:
                         return False
-            name += 'S{}E{}'.format(str(Season).zfill(2), str(Episode).zfill(2))
+            name += ' S{}E{}'.format(str(Season).zfill(2), str(Episode).zfill(2))
             STORAGE.update_lastmatch(id, 'S{}E{}'.format(str(Season).zfill(2), str(Episode).zfill(2)))
         else:
             Episode = int(lastmatch[1:])
@@ -98,7 +98,7 @@ def Weeb(id, name, url, includes, excludes, lastmatch, path):
             Episode = str(Episode + 1).zfill(2)
             STORAGE.update_lastmatch(id, 'E{}'.format(Episode))
 
-            name += 'E{}'.format(Episode)
+            name += ' E{}'.format(Episode)
 
         STORAGE.addtodownload(id, name, 'Weeb', link, path)
     except Exception as e:
