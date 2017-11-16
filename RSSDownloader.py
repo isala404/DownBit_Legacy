@@ -63,7 +63,7 @@ def Weeb(id, name, url, path):
     EXE("wget '{}' -O '{}{}.mp4' -c".format(
         link, path, name
     ))
-    if os.path.isfile(path + name):
+    if os.path.isfile('{}{}.mp4'.format(path,name)):
         STORAGE.mark_downloaded(id)
 
 
