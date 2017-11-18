@@ -16,9 +16,14 @@ class Storage(object):
         self.c = self.conn.cursor()
 
         self.c.execute(
-            '''CREATE TABLE IF NOT EXISTS "Downloads" ( `ID` INTEGER PRIMARY KEY AUTOINCREMENT, `RSSID` INTEGER, `Name` TEXT DEFAULT ' ', `Method` TEXT NOT NULL, `URL` TEXT NOT NULL, `AddedTime` NUMERIC DEFAULT ' ', `DownloadedTime` NUMERIC DEFAULT ' ', `Path` TEXT DEFAULT '/mnt', `FileSize` REAL DEFAULT ' ', `DownloadedSize` REAL DEFAULT ' ', `optionalARGS` TEXT DEFAULT ' ', `Downloaded` NUMERIC DEFAULT 0 )''')
+            '''CREATE TABLE IF NOT EXISTS "Downloads" ( `ID` INTEGER PRIMARY KEY AUTOINCREMENT, `RSSID` INTEGER, 
+            `Name` TEXT DEFAULT ' ', `Method` TEXT NOT NULL, `URL` TEXT NOT NULL, `AddedTime` NUMERIC DEFAULT ' ', 
+            `DownloadedTime` NUMERIC DEFAULT ' ', `Path` TEXT DEFAULT '/mnt', `FileSize` REAL DEFAULT ' ', 
+            `DownloadedSize` REAL DEFAULT ' ', `optionalARGS` TEXT DEFAULT ' ', `Downloaded` NUMERIC DEFAULT 0 )''')
         self.c.execute(
-            '''CREATE TABLE IF NOT EXISTS "RSSFeeds" ( `ID` INTEGER PRIMARY KEY AUTOINCREMENT, `Name` TEXT, `Feed` TEXT, `DownloadPath` TEXT, `Includes` TEXT, `Excludes` TEXT DEFAULT '#&*,$#', `Type` TEXT, `Quality` TEXT DEFAULT '720p', `LastMatch` TEXT );''')
+            '''CREATE TABLE IF NOT EXISTS "RSSFeeds" ( `ID` INTEGER PRIMARY KEY AUTOINCREMENT, `Name` TEXT, 
+            `Feed` TEXT, `DownloadPath` TEXT, `Includes` TEXT, `Excludes` TEXT DEFAULT '#&*,$#', `Type` TEXT, 
+            `Quality` TEXT DEFAULT '720p', `LastMatch` TEXT );''')
         self.c.execute("SELECT * FROM RSSFeeds")
         if len(self.c.fetchall()) == 0:
             self.c.execute(

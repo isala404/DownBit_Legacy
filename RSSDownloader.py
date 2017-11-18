@@ -13,9 +13,9 @@ EXE = DB.exe
 
 def YoutubeDL(id, name, url, path, quality, arg, playlist=False):
     def getQuality(s):
-        if s is '720p':
+        if s == '720p':
             return 22
-        elif s is 'MP3':
+        elif s == 'MP3':
             return 140
         else:
             return 18
@@ -26,14 +26,15 @@ def YoutubeDL(id, name, url, path, quality, arg, playlist=False):
         ))
     else:
         EXE(
-            'youtube-dl -o "{}%(playlist)s/%(playlist_index)s-%(title)s_[%(id)s].%(ext)s" {} -f {} --max-filesize {} -c --no-progress {}'.format(
+            'youtube-dl -o "{}%(playlist)s/%(playlist_index)s-%(title)s_[%(id)s].%(ext)s" {} -f {} --max-filesize {} '
+            '-c --no-progress {}'.format(
                 path, url, getQuality(quality), DB.cfg.getSetting('YoutubeMaxFileSize'), arg
             ))
     STORAGE.mark_downloaded(id)
 
 
 def Torrent(id, url, path, arg):
-    EXE("deluge-console add '{}' -p '{}' {}".format(
+    EXE('deluge-console add "{}" -p "{}" {}'.format(
         url, path, arg
     ))
     STORAGE.mark_downloaded(id)
@@ -41,7 +42,7 @@ def Torrent(id, url, path, arg):
 
 def Direct(id, name, url, path, arg):
     os.mkdir(path)
-    EXE("wget '{}' -O '{}{}' -c {}".format(
+    EXE('wget "{}" -O "{}{}" -c {}'.format(
         url, path, name, arg
     ))
     if os.path.isfile(path + name):
@@ -63,7 +64,7 @@ def Weeb(id, name, url, path):
     EXE("wget '{}' -O '{}{}.mp4' -c".format(
         link, path, name
     ))
-    if os.path.isfile('{}{}.mp4'.format(path,name)):
+    if os.path.isfile('{}{}.mp4'.format(path, name)):
         STORAGE.mark_downloaded(id)
 
 
@@ -74,15 +75,16 @@ def main():
             for row in STORAGE.get('SELECT * FROM Downloads WHERE Downloaded = 0;'):
                 try:
                     ID = row[0]
-                    Quality = row[1]
                     Name = DB.clear(row[2])
                     Type = row[3]
                     URL = row[4]
                     Path = row[7]
                     ARG = row[9]
                     if Type == 'Youtube':
+                        Quality = STORAGE.get('SELECT Quality FROM RSSFeeds WHERE ID = (?);',row[1])
                         YoutubeDL(ID, Name, URL, Path, Quality, ARG)
                     elif Type == 'Youtube-Playlist':
+                        Quality = STORAGE.get('SELECT Quality FROM RSSFeeds WHERE ID = (?);', row[1])
                         YoutubeDL(ID, Name, URL, Path, Quality, ARG, playlist=True)
                     elif Type == 'Torrent':
                         Torrent(ID, URL, Path, ARG)
