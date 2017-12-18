@@ -103,6 +103,7 @@ def Weeb(id, name, url, includes, excludes, lastmatch, path):
         STORAGE.addtodownload(id, name, 'Weeb', link, path)
     except Exception as e:
         LOGGER.critical(str(type(e).__name__) + " : " + str(e))
+        LOGGER.critical('Error URL - '+url)
         LOGGER.critical(DB.Logger.getError())
 
 

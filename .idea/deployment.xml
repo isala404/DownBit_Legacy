@@ -5,8 +5,11 @@
       <paths name="BananaVault">
         <serverdata>
           <mappings>
-            <mapping deploy="/DownBit_dev" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/downbit" local="$PROJECT_DIR$" web="/" />
           </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/data" />
+          </excludedPaths>
         </serverdata>
       </paths>
     </serverData>

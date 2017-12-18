@@ -17,7 +17,10 @@ def YoutubeDL(id, name, url, path, quality, arg, playlist=False):
             return 22
         elif s == 'MP3':
             return 140
+        elif s == '480p':
+            return 'bestvideo[height<=480][ext=mp4]+bestaudio/[height <=? 480]'
         else:
+            LOGGER.info("{} is a Unknown Quality setting Quality to 360p".format(s))
             return 18
 
     if not playlist:
@@ -81,16 +84,16 @@ def main():
                     Path = row[7]
                     ARG = row[9]
                     if Type == 'Youtube':
-                        Quality = STORAGE.get('SELECT Quality FROM RSSFeeds WHERE ID = (?);',row[1])
+                        Quality = STORAGE.get('SELECT Quality FROM RSSFeeds WHERE ID = (?);', row[1])[0][0]
                         YoutubeDL(ID, Name, URL, Path, Quality, ARG)
                     elif Type == 'Youtube-Playlist':
-                        Quality = STORAGE.get('SELECT Quality FROM RSSFeeds WHERE ID = (?);', row[1])
+                        Quality = STORAGE.get('SELECT Quality FROM RSSFeeds WHERE ID = (?);', row[1])[0][0]
                         YoutubeDL(ID, Name, URL, Path, Quality, ARG, playlist=True)
                     elif Type == 'Torrent':
                         Torrent(ID, URL, Path, ARG)
                     elif Type == 'Weeb':
                         Weeb(ID, row[2], URL, Path)
-                    else:
+                    elif Type == 'Direct':
                         Direct(ID, Name, URL, Path, ARG)
                 except Exception as e:
                     LOGGER.critical(str(type(e).__name__) + " : " + str(e))
