@@ -39,8 +39,7 @@ class Storage(object):
             else:
                 return self.c.fetchall()
         except Exception as e:
-            DB.Logger.log.critical(str(type(e).__name__) + " : " + str(e))
-            DB.Logger.log.critical(DB.Logger.getError())
+            DB.Logger.log.exception(e)
 
     def put(self, query, *pars):
         DB.Logger.log.info("Writing Data --> {} - {}".format(query, pars))
@@ -48,8 +47,7 @@ class Storage(object):
             self.c.execute(query, pars)
             self.conn.commit()
         except Exception as e:
-            DB.Logger.log.critical(str(type(e).__name__) + " : " + str(e))
-            DB.Logger.log.critical(DB.Logger.getError())
+            DB.Logger.log.exception(e)
 
     def getid(self, table, value, column):
         self.c.execute("SELECT * FROM (?) WHERE (?) = (?)", (table, column, value))
@@ -77,8 +75,7 @@ class ConfigParser(object):
             self.config = configparser.ConfigParser()
             self.config.read('data/config.ini')
         except Exception as e:
-            DB.Logger.log.critical(str(type(e).__name__) + " : " + str(e))
-            DB.Logger.log.critical(DB.Logger.getError())
+            DB.Logger.log.exception(e)
 
     def getSetting(self, option, section="DownBit"):
         return self.config[section][option]
@@ -130,8 +127,7 @@ class Logger(object):
             consoleHandler.setFormatter(logFormatter)
             self.log.addHandler(consoleHandler)
         except Exception as e:
-            self.log.critical(str(type(e).__name__) + " : " + str(e))
-            self.log.critical(self.getError())
+            self.log.exception(e)
 
     @staticmethod
     def loglevel():
@@ -145,13 +141,6 @@ class Logger(object):
             return 40
         else:
             return 20
-
-    def getError(self):
-        self.buildFailed = True
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        error = "{} {} {}".format(exc_type, fname, exc_tb.tb_lineno)
-        return error
 
 
 class DownBit(object):
@@ -180,21 +169,38 @@ class DownBit(object):
                 self.Logger.log.info("output " + line)
             return out
         except Exception as e:
-            self.Logger.log.critical(str(type(e).__name__) + " : " + str(e))
-            self.Logger.log.critical(self.Logger.getError())
+            self.Logger.log.exception(e)
 
-    def isMatch(self, name, includes, excludes):
-        includes = includes.split(',')
-        excludes = excludes.split(',')
-        for include in includes:
-            if not include.lower() in name.lower():
-                self.Logger.log.debug("Includes are not Full Filled => {} are not in {}".format(includes, name))
-                return False
-        for exclude in excludes:
-            if exclude.lower() in name.lower():
-                self.Logger.log.debug("Excludes ( {} ) were found in {}".format(excludes, name))
-                return False
-        return True
+    @staticmethod
+    def isMatch(name, includes, excludes):
+        ins_matched = False
+        exes_matched = False
+        brake_main = False
+        for ins in includes.split('||'):
+            for include in ins.split(','):
+                if not include.lower().strip() in name.lower():
+                    ins_matched = False
+                    break
+                else:
+                    ins_matched = True
+            if ins_matched:
+                brake_main = True
+            else:
+                if brake_main:
+                    break
+                else:
+                    continue
+        if excludes != '':
+            for exclude in excludes.split(','):
+                if exclude.lower().strip() in name.lower():
+                    exes_matched = True
+                    break
+                else:
+                    exes_matched = False
+        if ins_matched and not exes_matched:
+            return True
+        else:
+            return False
 
 
 DB = DownBit()

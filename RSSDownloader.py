@@ -1,9 +1,5 @@
 import os
 import time
-import urllib.request
-
-import bs4 as bs
-
 from Core import DB
 
 LOGGER = DB.Logger.log
@@ -18,7 +14,7 @@ def YoutubeDL(id, name, url, path, quality, arg, playlist=False):
         elif s == 'MP3':
             return 140
         elif s == '480p':
-            return 'bestvideo[height<=480][ext=mp4]+bestaudio/[height <=? 480]'
+            return '"bestvideo[height<=480][ext=mp4]+bestaudio/[height <=? 480]"'
         else:
             LOGGER.info("{} is a Unknown Quality setting Quality to 360p".format(s))
             return 18
@@ -36,6 +32,24 @@ def YoutubeDL(id, name, url, path, quality, arg, playlist=False):
     STORAGE.mark_downloaded(id)
 
 
+def Twitch(id, name, url, path, quality, arg):
+    EXE('screen -dmS Twitch-dl youtube-dl -o "{}{}.%(ext)s" {} -f {} --max-filesize {} -c --no-progress -v {}'.format(
+        path, name, url, quality, DB.cfg.getSetting('TwitchMaxFileSize'), arg
+    ))
+    STORAGE.mark_downloaded(id)
+
+
+def Spotify(id, name, url, path, album):
+    EXE('youtube-dl "ytsearch:{} {} Audio" -o "{}{} - {} [%(id)s].%(ext)s" -f 140 -c --no-progress --extract-audio'
+        ' --audio-format mp3'.format(url, name, path, url.split(',')[0], name))
+
+    EXE('id3tool -t "{}" -a "{}" -r "{}" "{}{}"'.format(
+        name, url.split(',')[0], album, path,
+        [i for i in os.listdir(path) if '{} - {}'.format(url.split(',')[0], name) in i][0]
+    ))
+    STORAGE.mark_downloaded(id)
+
+
 def Torrent(id, url, path, arg):
     EXE('deluge-console add "{}" -p "{}" {}'.format(
         url, path, arg
@@ -44,31 +58,18 @@ def Torrent(id, url, path, arg):
 
 
 def Direct(id, name, url, path, arg):
-    os.mkdir(path)
+    if '.' not in name[-5:] and '.' in url[-5:]:
+        name += '.' + url.split('.')[-1]
+    if not os.path.isdir(path):
+        os.makedirs(path)
     EXE('wget "{}" -O "{}{}" -c {}'.format(
         url, path, name, arg
     ))
-    if os.path.isfile(path + name):
-        STORAGE.mark_downloaded(id)
-
-
-def Weeb(id, name, url, path):
-    if not os.path.exists(path):
-        os.mkdir(path)
-    source = urllib.request.urlopen(url).read()
-    soup = bs.BeautifulSoup(source, 'lxml')
-
-    js_text = soup.find_all('div', class_='pcat-jwplayer')[0].find('script', type="text/javascript").text.split('\n')
-    if 'http' in js_text[10].strip().strip('file: "').strip('",'):
-        link = js_text[10].strip().strip('file: "').strip('",')
-    else:
-        link = js_text[6].strip().strip('file: "').strip('",')
-
-    EXE("wget '{}' -O '{}{}.mp4' -c".format(
-        link, path, name
-    ))
-    if os.path.isfile('{}{}.mp4'.format(path, name)):
-        STORAGE.mark_downloaded(id)
+    if path.endswith('.mp3'):
+        EXE('id3tool -t "{}" -r "{}" "{}{}"'.format(
+            name, name.split(' ')[0], path, name
+        ))
+    STORAGE.mark_downloaded(id)
 
 
 def main():
@@ -91,10 +92,16 @@ def main():
                         YoutubeDL(ID, Name, URL, Path, Quality, ARG, playlist=True)
                     elif Type == 'Torrent':
                         Torrent(ID, URL, Path, ARG)
-                    elif Type == 'Weeb':
-                        Weeb(ID, row[2], URL, Path)
+                    elif Type == 'Twitch':
+                        Quality = STORAGE.get('SELECT Quality FROM RSSFeeds WHERE ID = (?);', row[1])[0][0]
+                        Twitch(ID, Name, URL, Path, Quality, ARG)
                     elif Type == 'Direct':
                         Direct(ID, Name, URL, Path, ARG)
+                    elif Type == 'SoundCloud':
+                        Direct(ID, Name, URL, Path, ARG)
+                    elif Type == 'Spotify':
+                        Spotify(ID, Name, URL, Path, ARG)
+
                 except Exception as e:
                     LOGGER.critical(str(type(e).__name__) + " : " + str(e))
                     LOGGER.critical(DB.Logger.getError())
