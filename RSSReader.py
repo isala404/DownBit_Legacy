@@ -163,6 +163,8 @@ def main():
                 Youtube(ID, URL, Includes, Excludes, LastMatch, Path)
             elif Type == 'Torrent':
                 Torrent(ID, URL, Includes, Excludes, LastMatch, Path)
+            elif Type == 'Twitch':
+                Twitch(ID, URL, Includes, Excludes, LastMatch, Path)
             elif Type == 'YTS':
                 YTS(ID, URL, Includes, Excludes, LastMatch, Path)
             elif Type == 'SoundCloud':
