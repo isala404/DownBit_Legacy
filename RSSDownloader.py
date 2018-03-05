@@ -43,7 +43,7 @@ def Spotify(id, name, url, path, album):
     EXE('youtube-dl "ytsearch:{} {} Audio" -o "{}{} - {} [%(id)s].%(ext)s" -f 140 -c --no-progress --extract-audio'
         ' --audio-format mp3'.format(url, name, path, url.split(',')[0], name))
 
-    EXE('id3tool -t "{}" -a "{}" -r "{}" "{}{}"'.format(
+    EXE('id3tool -t "{}" -r "{}" -a "{}" "{}{}"'.format(
         name, url.split(',')[0], album, path,
         [i for i in os.listdir(path) if '{} - {}'.format(url.split(',')[0], name) in i][0]
     ))
