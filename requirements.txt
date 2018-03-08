@@ -1,2 +1,3 @@
 feedparser
 youtube-dl
+eyed3

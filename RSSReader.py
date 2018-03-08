@@ -86,9 +86,10 @@ def Spotify(id, url, lastmatch, path):
             if str(lastmatch) == str(entry['count']):
                 break
             lastmatch_ = i
+
         for i in range(lastmatch_, -1, -1):
-            STORAGE.addtodownload(id, d['entries'][i]['trackname'], 'Spotify', d['entries'][i]['artistname'],
-                                  path, arg=d['entries'][i]['albumname'])
+            STORAGE.addtodownload(id, "{};;;{}".format(d['entries'][i]['trackname'],  d['entries'][i]['artistname']),
+                                  'Spotify', d['entries'][i]['coverimage'], path, arg=d['entries'][i]['albumname'])
             STORAGE.update_lastmatch(id, d['entries'][i]['count'])
     except Exception as e:
         LOGGER.exception(e)
@@ -152,7 +153,6 @@ def main():
     while True:
         for row in STORAGE.get("SELECT * FROM RSSFeeds"):
             ID = row[0]
-            Name = row[1]
             URL = row[2]
             Path = row[3]
             Includes = row[4]

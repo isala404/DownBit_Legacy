@@ -1,6 +1,8 @@
 import os
 import time
 from Core import DB
+import eyed3
+from urllib.request import urlretrieve as download
 
 LOGGER = DB.Logger.log
 STORAGE = DB.Storage
@@ -33,20 +35,27 @@ def YoutubeDL(id, name, url, path, quality, arg, playlist=False):
 
 
 def Twitch(id, name, url, path, quality, arg):
-    EXE('screen -dmS Twitch-dl youtube-dl -o "{}{}.%(ext)s" {} -f {} --max-filesize {} -c --no-progress -v {}'.format(
-        path, name, url, quality, DB.cfg.getSetting('TwitchMaxFileSize'), arg
-    ))
+    EXE('nohup Twitch-dl youtube-dl -o "{}{}.%(ext)s" {} -f {} --max-filesize {} -c --no-progress -v '
+        '{} > {}/{}.txt 2>&1 &'.format(path, name, url, quality, DB.cfg.getSetting('TwitchMaxFileSize'), arg, path, name
+                                       ))
     STORAGE.mark_downloaded(id)
 
 
-def Spotify(id, name, url, path, album):
-    EXE('youtube-dl "ytsearch:{} {} Audio" -o "{}{} - {} [%(id)s].%(ext)s" -f 140 -c --no-progress --extract-audio'
-        ' --audio-format mp3'.format(url, name, path, url.split(',')[0], name))
-
-    EXE('id3tool -t "{}" -r "{}" -a "{}" "{}{}"'.format(
-        name, url.split(',')[0], album, path,
-        [i for i in os.listdir(path) if '{} - {}'.format(url.split(',')[0], name) in i][0]
-    ))
+def Spotify(id, name, img_url, path, album):
+    TrackName = name.split(';;;')[0]
+    ArtistName = name.split(';;;')[1].split(',')[0]
+    EXE('youtube-dl "ytsearch:{0} {1} Audio" -o "{2}{0} - {1} [%(id)s].%(ext)s" -f 140 -c --no-progress --extract-audio'
+        ' --audio-format mp3 --max-filesize 15m'.format(ArtistName, TrackName, path))
+    saved_name = [i for i in os.listdir(path) if '{} - {}'.format(ArtistName, TrackName) in i][0]
+    audiofile = eyed3.load(saved_name)
+    audiofile.tag.artist = u"{}".format(name.split(';;;')[1])
+    audiofile.tag.album = u"{}".format(album)
+    audiofile.tag.album_artist = u"{}".format(ArtistName)
+    dl_dir = "/tmp/{}-{}.jpg".format(TrackName, ArtistName)
+    download(img_url, dl_dir)
+    audiofile.tag.title = u"{}".format(TrackName)
+    audiofile.tag.images.set(3, open(dl_dir, "rb").read(), "image/jpeg", u"")
+    audiofile.tag.save()
     STORAGE.mark_downloaded(id)
 
 
@@ -83,7 +92,7 @@ def main():
                     Type = row[3]
                     URL = row[4]
                     Path = row[7]
-                    ARG = row[9]
+                    ARG = row[10]
                     if Type == 'Youtube':
                         Quality = STORAGE.get('SELECT Quality FROM RSSFeeds WHERE ID = (?);', row[1])[0][0]
                         YoutubeDL(ID, Name, URL, Path, Quality, ARG)
@@ -100,12 +109,9 @@ def main():
                     elif Type == 'SoundCloud':
                         Direct(ID, Name, URL, Path, ARG)
                     elif Type == 'Spotify':
-                        Spotify(ID, Name, URL, Path, ARG)
-
+                        Spotify(ID, row[2], URL, Path, ARG)
                 except Exception as e:
-                    LOGGER.critical(str(type(e).__name__) + " : " + str(e))
-                    LOGGER.critical(DB.Logger.getError())
-                    pass
+                    LOGGER.exception(e)
         LOGGER.debug("Waiting 120 seconds for next session")
         time.sleep(120)
 
