@@ -35,9 +35,11 @@ def YoutubeDL(id, name, url, path, quality, arg, playlist=False):
 
 
 def Twitch(id, name, url, path, quality, arg):
-    EXE('nohup Twitch-dl youtube-dl -o "{}{}.%(ext)s" {} -f {} --max-filesize {} -c --no-progress -v '
-        '{} > {}/{}.txt 2>&1 &'.format(path, name, url, quality, DB.cfg.getSetting('TwitchMaxFileSize'), arg, path, name
-                                       ))
+    if not os.path.exists(path):
+        os.makedirs(path)
+    EXE('nohup youtube-dl -o "{}{}.%(ext)s" {} -f {} --max-filesize {} -c --no-progress -v '
+        '{} > "{}{}.txt" 2>&1 &'.format(path, name, url, quality, DB.cfg.getSetting('TwitchMaxFileSize'),
+                                        arg, path, name))
     STORAGE.mark_downloaded(id)
 
 
@@ -46,7 +48,7 @@ def Spotify(id, name, img_url, path, album):
     ArtistName = name.split(';;;')[1].split(',')[0]
     EXE('youtube-dl "ytsearch:{0} {1} Audio" -o "{2}{0} - {1} [%(id)s].%(ext)s" -f 140 -c --no-progress --extract-audio'
         ' --audio-format mp3 --max-filesize 15m'.format(ArtistName, TrackName, path))
-    saved_name = [i for i in os.listdir(path) if '{} - {}'.format(ArtistName, TrackName) in i][0]
+    saved_name = os.path.join(path, [i for i in os.listdir(path) if '{} - {}'.format(ArtistName, TrackName) in i][0])
     audiofile = eyed3.load(saved_name)
     audiofile.tag.artist = u"{}".format(name.split(';;;')[1])
     audiofile.tag.album = u"{}".format(album)
