@@ -48,7 +48,8 @@ def Spotify(id, name, img_url, path, album):
     ArtistName = name.split(';;;')[1].split(',')[0]
     EXE('youtube-dl "ytsearch:{0} {1} Audio" -o "{2}{0} - {1} [%(id)s].%(ext)s" -f 140 -c --no-progress --extract-audio'
         ' --audio-format mp3 --max-filesize 15m'.format(ArtistName, TrackName, path))
-    saved_name = os.path.join(path, [i for i in os.listdir(path) if '{} - {}'.format(ArtistName, TrackName) in i][0])
+    song_path = [i for i in os.listdir(path) if '{} - {}'.format(ArtistName, TrackName) in i and i.endswith('.mp3')][0]
+    saved_name = os.path.join(path, song_path)
     audiofile = eyed3.load(saved_name)
     audiofile.tag.artist = u"{}".format(name.split(';;;')[1])
     audiofile.tag.album = u"{}".format(album)
